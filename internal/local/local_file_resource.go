@@ -64,7 +64,7 @@ func (r *LocalFileResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Generate a unique, stable ID before writing the file
-	data.Id = types.StringValue(utils.GenerateFileID(data.Path.ValueString(), time.Now()))
+	data.Id = types.StringValue(utils.GenerateID(data.Path.ValueString(), time.Now()))
 
 	// Create parent directories if they don't exist
 	dir := filepath.Dir(data.Path.ValueString())

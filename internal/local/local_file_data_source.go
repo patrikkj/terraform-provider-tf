@@ -59,7 +59,7 @@ func (d *LocalFileDataSource) Read(ctx context.Context, req datasource.ReadReque
 	}
 
 	// Generate a unique ID early, based on the path
-	data.Id = types.StringValue(utils.GenerateFileID(data.Path.ValueString(), time.Now()))
+	data.Id = types.StringValue(utils.GenerateID(data.Path.ValueString(), time.Now()))
 
 	content, err := os.ReadFile(data.Path.ValueString())
 	if err != nil {

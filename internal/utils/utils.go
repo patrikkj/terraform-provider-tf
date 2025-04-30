@@ -19,18 +19,10 @@ func ParseFileMode(mode string) fs.FileMode {
 	return fs.FileMode(result)
 }
 
-// GenerateFileID creates a unique identifier for a file based on its path and timestamp
-func GenerateFileID(path string, timestamp time.Time) string {
+// GenerateID creates a unique identifier for a string based on its input and timestamp
+func GenerateID(input string, timestamp time.Time) string {
 	h := md5.New()
-	h.Write([]byte(path))
-	h.Write([]byte(timestamp.UTC().Format(time.RFC3339)))
-	return hex.EncodeToString(h.Sum(nil))
-}
-
-// GenerateExecID creates a unique identifier for a command based on its command and timestamp
-func GenerateExecID(command string, timestamp time.Time) string {
-	h := md5.New()
-	h.Write([]byte(command))
+	h.Write([]byte(input))
 	h.Write([]byte(timestamp.UTC().Format(time.RFC3339)))
 	return hex.EncodeToString(h.Sum(nil))
 }

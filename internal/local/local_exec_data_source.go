@@ -63,7 +63,7 @@ func (d *LocalExecDataSource) Read(ctx context.Context, req datasource.ReadReque
 	}
 
 	// Generate ID early, based on the command
-	data.Id = types.StringValue(utils.GenerateExecID(data.Command.ValueString(), time.Now()))
+	data.Id = types.StringValue(utils.GenerateID(data.Command.ValueString(), time.Now()))
 
 	// Execute the command
 	output, exitCode, err := executeLocalCommand(data.Command.ValueString(), data.FailIfNonzero.ValueBool())
