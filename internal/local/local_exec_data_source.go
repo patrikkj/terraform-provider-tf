@@ -1,4 +1,4 @@
-package provider
+package local
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/patrikkj/terraform-provider-tf/internal/utils"
 )
 
 type LocalExecDataSourceModel struct {
@@ -62,7 +63,7 @@ func (d *LocalExecDataSource) Read(ctx context.Context, req datasource.ReadReque
 	}
 
 	// Generate ID early, based on the command
-	data.Id = types.StringValue(generateExecID(data.Command.ValueString(), time.Now()))
+	data.Id = types.StringValue(utils.GenerateExecID(data.Command.ValueString(), time.Now()))
 
 	// Execute the command
 	output, exitCode, err := executeLocalCommand(data.Command.ValueString(), data.FailIfNonzero.ValueBool())

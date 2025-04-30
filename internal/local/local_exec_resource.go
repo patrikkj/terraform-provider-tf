@@ -1,4 +1,4 @@
-package provider
+package local
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/patrikkj/terraform-provider-tf/internal/utils"
 )
 
 type LocalExecResourceModel struct {
@@ -70,7 +71,7 @@ func (r *LocalExecResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Generate a unique, stable ID before executing the command
-	data.Id = types.StringValue(generateExecID(data.Command.ValueString(), time.Now()))
+	data.Id = types.StringValue(utils.GenerateExecID(data.Command.ValueString(), time.Now()))
 
 	// Execute the command
 	output, exitCode, err := executeLocalCommand(data.Command.ValueString(), data.FailIfNonzero.ValueBool())

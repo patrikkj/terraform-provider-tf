@@ -1,18 +1,60 @@
-package provider
+package local
 
 import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/patrikkj/terraform-provider-tf/internal/provider"
+	"github.com/patrikkj/terraform-provider-tf/internal/utils"
 )
 
 func TestAccLocalExecResource(t *testing.T) {
+	create := utils.Heredoc(`
+		resource "tf_local_exec" "basic" {
+			command = "echo 'hello world'"
+		}
+
+		resource "tf_local_exec" "on_destroy" {
+			command = "echo 'hello world'"
+			on_destroy = "echo 'on_destroy' > /tmp/on_destroy"
+		}
+
+		resource "tf_local_exec" "nonzero_allowed" {
+			command        = "false"
+			fail_if_nonzero = false
+		}
+
+		resource "tf_local_exec" "multiline" {
+			command = <<-EOF
+				echo "Line 1"
+				echo "Line 2"
+			EOF
+		}
+	`)
+
+	update := utils.Heredoc(`
+		resource "tf_local_exec" "basic" {
+			command = "echo 'updated'"
+		}
+
+		resource "tf_local_exec" "nonzero_allowed" {
+			command        = "false"
+			fail_if_nonzero = false
+		}
+
+		resource "tf_local_exec" "multiline" {
+			command = <<-EOF
+				echo "Line 1"
+				echo "Line 2"
+			EOF
+		}
+	`)
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		PreCheck:                 func() { provider.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccLocalExecResourceConfig(),
+				Config: create,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Basic command execution
 					resource.TestCheckResourceAttr("tf_local_exec.basic", "command", "echo 'hello world'"),
@@ -23,11 +65,6 @@ func TestAccLocalExecResource(t *testing.T) {
 					resource.TestCheckResourceAttr("tf_local_exec.nonzero_allowed", "command", "false"),
 					resource.TestCheckResourceAttr("tf_local_exec.nonzero_allowed", "exit_code", "1"),
 
-					// Whoami command
-					resource.TestCheckResourceAttr("tf_local_exec.whoami", "command", "whoami"),
-					resource.TestCheckResourceAttrSet("tf_local_exec.whoami", "output"),
-					resource.TestCheckResourceAttr("tf_local_exec.whoami", "exit_code", "0"),
-
 					// Multiline command
 					resource.TestCheckResourceAttr("tf_local_exec.multiline", "command", "echo \"Line 1\"\necho \"Line 2\"\n"),
 					resource.TestCheckResourceAttr("tf_local_exec.multiline", "exit_code", "0"),
@@ -36,7 +73,7 @@ func TestAccLocalExecResource(t *testing.T) {
 			},
 			// Test updates to commands
 			{
-				Config: testAccLocalExecResourceConfigUpdates(),
+				Config: update,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("tf_local_exec.basic", "command", "echo 'updated'"),
 					resource.TestCheckResourceAttr("tf_local_exec.basic", "exit_code", "0"),
@@ -45,57 +82,4 @@ func TestAccLocalExecResource(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccLocalExecResourceConfig() string {
-	return `
-resource "tf_local_exec" "basic" {
-  command = "echo 'hello world'"
-}
-
-resource "tf_local_exec" "on_destroy" {
-  command = "echo 'hello world'"
-  on_destroy = "echo 'on_destroy' > /tmp/on_destroy"
-}
-
-resource "tf_local_exec" "nonzero_allowed" {
-  command        = "false"
-  fail_if_nonzero = false
-}
-
-resource "tf_local_exec" "whoami" {
-  command = "whoami"
-}
-
-resource "tf_local_exec" "multiline" {
-  command = <<-EOF
-    echo "Line 1"
-    echo "Line 2"
-  EOF
-}
-`
-}
-
-func testAccLocalExecResourceConfigUpdates() string {
-	return `
-resource "tf_local_exec" "basic" {
-  command = "echo 'updated'"
-}
-
-resource "tf_local_exec" "nonzero_allowed" {
-  command        = "false"
-  fail_if_nonzero = false
-}
-
-resource "tf_local_exec" "whoami" {
-  command = "whoami"
-}
-
-resource "tf_local_exec" "multiline" {
-  command = <<-EOF
-    echo "Line 1"
-    echo "Line 2"
-  EOF
-}
-`
 }

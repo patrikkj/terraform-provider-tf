@@ -1,4 +1,4 @@
-package provider
+package local
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/patrikkj/terraform-provider-tf/internal/utils"
 )
 
 type LocalFileResourceModel struct {
@@ -63,7 +64,7 @@ func (r *LocalFileResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Generate a unique, stable ID before writing the file
-	data.Id = types.StringValue(generateFileID(data.Path.ValueString(), time.Now()))
+	data.Id = types.StringValue(utils.GenerateFileID(data.Path.ValueString(), time.Now()))
 
 	// Create parent directories if they don't exist
 	dir := filepath.Dir(data.Path.ValueString())

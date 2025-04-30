@@ -1,4 +1,4 @@
-package provider
+package local
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/patrikkj/terraform-provider-tf/internal/utils"
 )
 
 type LocalFileDataSourceModel struct {
@@ -58,7 +59,7 @@ func (d *LocalFileDataSource) Read(ctx context.Context, req datasource.ReadReque
 	}
 
 	// Generate a unique ID early, based on the path
-	data.Id = types.StringValue(generateFileID(data.Path.ValueString(), time.Now()))
+	data.Id = types.StringValue(utils.GenerateFileID(data.Path.ValueString(), time.Now()))
 
 	content, err := os.ReadFile(data.Path.ValueString())
 	if err != nil {
