@@ -41,5 +41,5 @@ func (p *LocalProvider) Resources() []func() resource.Resource {
 }
 
 func init() {
-	_provider.RegisterProvider(&LocalProvider{})
+	_provider.RegisterSubprovider(&LocalProvider{})
 }

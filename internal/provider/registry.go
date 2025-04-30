@@ -19,6 +19,6 @@ type Subprovider interface {
 
 var registry = []Subprovider{}
 
-func RegisterProvider(subprovider Subprovider) {
+func RegisterSubprovider(subprovider Subprovider) {
 	registry = append(registry, subprovider)
 }

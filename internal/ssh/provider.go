@@ -98,5 +98,5 @@ func (p *SSHProvider) Resources() []func() resource.Resource {
 }
 
 func init() {
-	_provider.RegisterProvider(&SSHProvider{})
+	_provider.RegisterSubprovider(&SSHProvider{})
 }
