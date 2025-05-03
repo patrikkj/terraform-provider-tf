@@ -1,37 +1,13 @@
 package ssh
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
+	"strconv"
 
 	"golang.org/x/crypto/ssh"
 )
-
-// Optional is a utility type for handling optional values
-type Optional[T any] struct {
-	value *T
-}
-
-// NewOptional creates a new Optional with a value
-func NewOptional[T any](value T) Optional[T] {
-	return Optional[T]{value: &value}
-}
-
-// Value returns the value or the zero value if nil
-func (o Optional[T]) Value() T {
-	if o.value == nil {
-		var zero T
-		return zero
-	}
-	return *o.value
-}
-
-// String returns a string representation of the value or "<nil>" if nil
-func (o Optional[T]) String() string {
-	if o.value == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("%v", *o.value)
-}
 
 // ConnectionKey represents the unique identifying parts of a connection
 type ConnectionKey struct {
@@ -49,11 +25,11 @@ type ConnectionKey struct {
 func NewConnectionKey(config SSHConnectionConfig, useProviderAsBastion bool, bastion *SSHConnectionConfig, fromClient *ssh.Client) ConnectionKey {
 	key := ConnectionKey{
 		UseProviderBastion: useProviderAsBastion,
-		Host:               NewOptional(config.Host).String(),
-		User:               NewOptional(config.User).String(),
-		Port:               NewOptional(config.Port).String(),
-		PasswordHash:       hashSensitive(NewOptional(config.Password).String()),
-		PrivateKeyHash:     hashSensitive(NewOptional(config.PrivateKey).String()),
+		Host:               stringValue(config.Host),
+		User:               stringValue(config.User),
+		Port:               int64Value(config.Port),
+		PasswordHash:       hashSensitive(stringValue(config.Password)),
+		PrivateKeyHash:     hashSensitive(stringValue(config.PrivateKey)),
 	}
 
 	// Add bastion details if present
@@ -78,4 +54,29 @@ func (k ConnectionKey) String() string {
 	}
 	return fmt.Sprintf("host=%s|user=%s|port=%s|pwd=%s|key=%s|useProviderBastion=%v|bastion=%s|from=%s",
 		k.Host, k.User, k.Port, k.PasswordHash, k.PrivateKeyHash, k.UseProviderBastion, bastionStr, k.FromClient)
+}
+
+// stringValue safely converts a pointer to string to its value or empty string if nil
+func stringValue(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+// int64Value safely converts a pointer to int64 to its string value or empty string if nil
+func int64Value(i *int64) string {
+	if i == nil {
+		return ""
+	}
+	return strconv.FormatInt(*i, 10)
+}
+
+// hashSensitive takes a sensitive string and returns its MD5 hash
+func hashSensitive(s string) string {
+	if s == "" {
+		return s
+	}
+	hash := md5.Sum([]byte(s))
+	return hex.EncodeToString(hash[:])
 }

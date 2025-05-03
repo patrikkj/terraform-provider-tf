@@ -1,8 +1,6 @@
 package ssh
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"net"
 	"strconv"
@@ -10,18 +8,6 @@ import (
 
 	"golang.org/x/crypto/ssh"
 )
-
-// connectionKey represents the unique identifying parts of a connection
-type connectionKey string
-
-// hashSensitive takes a sensitive string and returns its MD5 hash
-func hashSensitive(s string) string {
-	if s == "<nil>" {
-		return s
-	}
-	hash := md5.Sum([]byte(s))
-	return hex.EncodeToString(hash[:])
-}
 
 // SSHManager handles SSH connections for the provider
 type SSHManager struct {

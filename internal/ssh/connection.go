@@ -79,28 +79,11 @@ func (m *SSHConnectionModel) toConfig() *SSHConnectionConfig {
 		return nil
 	}
 
-	config := &SSHConnectionConfig{}
-
-	if !m.Host.IsNull() {
-		value := m.Host.ValueString()
-		config.Host = &value
+	return &SSHConnectionConfig{
+		Host:       m.Host.ValueStringPointer(),
+		User:       m.User.ValueStringPointer(),
+		Password:   m.Password.ValueStringPointer(),
+		PrivateKey: m.PrivateKey.ValueStringPointer(),
+		Port:       m.Port.ValueInt64Pointer(),
 	}
-	if !m.User.IsNull() {
-		value := m.User.ValueString()
-		config.User = &value
-	}
-	if !m.Password.IsNull() {
-		value := m.Password.ValueString()
-		config.Password = &value
-	}
-	if !m.PrivateKey.IsNull() {
-		value := m.PrivateKey.ValueString()
-		config.PrivateKey = &value
-	}
-	if !m.Port.IsNull() {
-		value := m.Port.ValueInt64()
-		config.Port = &value
-	}
-
-	return config
 }
