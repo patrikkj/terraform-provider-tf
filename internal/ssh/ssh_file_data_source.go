@@ -2,7 +2,6 @@ package ssh
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -67,25 +66,8 @@ func (d *SSHFileDataSource) Configure(_ context.Context, req datasource.Configur
 	if req.ProviderData == nil {
 		return
 	}
-
-	state, ok := req.ProviderData.(provider.ProviderState)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected provider.ProviderState, got: %T", req.ProviderData),
-		)
-		return
-	}
-
-	sshState, ok := state["ssh"].(*SSHProviderState)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Missing SSH Provider State",
-			"SSH provider state not found in provider data",
-		)
-		return
-	}
-
+	state, _ := req.ProviderData.(provider.ProviderState)
+	sshState, _ := state["ssh"].(*SSHProviderState)
 	d.manager = sshState.manager
 }
 

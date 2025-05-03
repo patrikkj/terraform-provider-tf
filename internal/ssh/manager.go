@@ -114,12 +114,12 @@ type SSHManager struct {
 	providerConfig  *SSHConnectionConfig
 	providerBastion *SSHConnectionConfig
 
-	clientCache map[connectionKey]*ssh.Client
+	clientCache map[ConnectionKey]*ssh.Client
 	lockMap     sync.Map // Map of mutexes per connection key
 }
 
 // getOrCreateLock returns a mutex for the given connection key
-func (m *SSHManager) getOrCreateLock(key connectionKey) *sync.Mutex {
+func (m *SSHManager) getOrCreateLock(key ConnectionKey) *sync.Mutex {
 	actual, _ := m.lockMap.LoadOrStore(key, &sync.Mutex{})
 	return actual.(*sync.Mutex)
 }
@@ -129,47 +129,35 @@ func NewSSHManager(config *SSHConnectionConfig, bastion *SSHConnectionConfig) (*
 	return &SSHManager{
 		providerConfig:  config,
 		providerBastion: bastion,
-		clientCache:     make(map[connectionKey]*ssh.Client),
+		clientCache:     make(map[ConnectionKey]*ssh.Client),
 	}, nil
 }
 
 // GetClient returns a cached SSH client or creates a new one if not found
 func (m *SSHManager) GetClient(config SSHConnectionConfig, useProviderAsBastion bool, bastion *SSHConnectionConfig, fromClient *ssh.Client) (*ssh.Client, error) {
-	key := newConnectionKey(config, useProviderAsBastion, bastion, fromClient)
-	// fmt.Printf("ATTEMPTING_LOCK (cache_size=%d): %s\n", len(m.clientCache), key)
+	key := NewConnectionKey(config, useProviderAsBastion, bastion, fromClient)
 
 	// Get or create lock for this connection key
 	lock := m.getOrCreateLock(key)
 	lock.Lock()
-	// fmt.Printf("ACQUIRED_LOCK: %s\n", key)
+	defer lock.Unlock()
 
 	// Check if client exists in cache
 	if client, ok := m.clientCache[key]; ok {
-		// fmt.Printf("CACHE_HIT: %s\n", key)
-		lock.Unlock()
-		// fmt.Printf("RELEASED_LOCK: %s\n", key)
 		return client, nil
 	}
-	// fmt.Printf("CACHE_MISS: %s\n", key)
 
 	// Create new client
 	client, isNew, err := m.getClient(config, useProviderAsBastion, bastion, fromClient)
 	if err != nil {
-		lock.Unlock()
-		// fmt.Printf("RELEASED_LOCK (error): %s\n", key)
 		return nil, err
 	}
 
 	// Cache the new client only if it was newly created
 	if isNew {
 		m.clientCache[key] = client
-		// fmt.Printf("CACHED_NEW_CLIENT: %s\n", key)
-	} else {
-		// fmt.Printf("CACHE_MISS_NEW_CLIENT: %s\n", key)
 	}
 
-	lock.Unlock()
-	// fmt.Printf("RELEASED_LOCK: %s\n", key)
 	return client, nil
 }
 
@@ -205,21 +193,9 @@ func (m *SSHManager) getClient(config SSHConnectionConfig, useProviderAsBastion 
 	}
 
 	// Create ssh client configuration
-	sshConfig := &ssh.ClientConfig{
-		User:            *config.User,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
-
-	// Configure authentication
-	if config.Password != nil {
-		sshConfig.Auth = append(sshConfig.Auth, ssh.Password(*config.Password))
-	}
-	if config.PrivateKey != nil {
-		signer, err := ssh.ParsePrivateKey([]byte(*config.PrivateKey))
-		if err != nil {
-			return nil, false, fmt.Errorf("unable to parse private key: %w", err)
-		}
-		sshConfig.Auth = append(sshConfig.Auth, ssh.PublicKeys(signer))
+	sshConfig, err := config.CreateSSHConfig()
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to create ssh config: %w", err)
 	}
 
 	// Create target from port and host

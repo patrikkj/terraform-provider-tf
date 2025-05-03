@@ -1,8 +1,11 @@
 package ssh
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"golang.org/x/crypto/ssh"
 )
 
 var SSHConnectionSchema = struct {
@@ -48,6 +51,26 @@ type SSHConnectionConfig struct {
 	Password   *string
 	PrivateKey *string
 	Port       *int64
+}
+
+func (c *SSHConnectionConfig) CreateSSHConfig() (*ssh.ClientConfig, error) {
+	sshConfig := &ssh.ClientConfig{
+		User:            *c.User,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
+
+	if c.Password != nil {
+		sshConfig.Auth = append(sshConfig.Auth, ssh.Password(*c.Password))
+	}
+	if c.PrivateKey != nil {
+		signer, err := ssh.ParsePrivateKey([]byte(*c.PrivateKey))
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse private key: %w", err)
+		}
+		sshConfig.Auth = append(sshConfig.Auth, ssh.PublicKeys(signer))
+	}
+
+	return sshConfig, nil
 }
 
 func (m *SSHConnectionModel) toConfig() *SSHConnectionConfig {
