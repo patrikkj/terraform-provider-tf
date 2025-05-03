@@ -46,16 +46,16 @@ type SSHConnectionModel struct {
 }
 
 type SSHConnectionConfig struct {
-	Host       *string
-	User       *string
+	Host       *string // is required, but nil indicates no ssh config
+	User       string
 	Password   *string
 	PrivateKey *string
-	Port       *int64
+	Port       int64
 }
 
 func (c *SSHConnectionConfig) CreateSSHConfig() (*ssh.ClientConfig, error) {
 	sshConfig := &ssh.ClientConfig{
-		User:            *c.User,
+		User:            c.User,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
@@ -79,11 +79,16 @@ func (m *SSHConnectionModel) toConfig() *SSHConnectionConfig {
 		return nil
 	}
 
+	port := int64(22)
+	if !m.Port.IsNull() {
+		port = m.Port.ValueInt64()
+	}
+
 	return &SSHConnectionConfig{
 		Host:       m.Host.ValueStringPointer(),
-		User:       m.User.ValueStringPointer(),
+		User:       m.User.ValueString(),
 		Password:   m.Password.ValueStringPointer(),
 		PrivateKey: m.PrivateKey.ValueStringPointer(),
-		Port:       m.Port.ValueInt64Pointer(),
+		Port:       port,
 	}
 }

@@ -99,11 +99,7 @@ func (m *SSHManager) getClient(config SSHConnectionConfig, useProviderAsBastion 
 	}
 
 	// Create target from port and host
-	var port int64 = 22 // Default port
-	if config.Port != nil {
-		port = *config.Port
-	}
-	target := net.JoinHostPort(*config.Host, strconv.FormatInt(port, 10))
+	target := net.JoinHostPort(*config.Host, strconv.FormatInt(config.Port, 10))
 
 	// If there is no fromClient, return a new client using ssh.Dial
 	if fromClient == nil {

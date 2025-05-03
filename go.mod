@@ -66,5 +66,6 @@ require (
 require (
 	github.com/joho/godotenv v1.5.1
 	github.com/pkg/sftp v1.13.9
+	github.com/sanity-io/litter v1.5.8
 	golang.org/x/crypto v0.31.0
 )
