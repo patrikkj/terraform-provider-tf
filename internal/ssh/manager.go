@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"strconv"
-	"strings"
 	"sync"
 
 	"golang.org/x/crypto/ssh"
@@ -22,91 +21,6 @@ func hashSensitive(s string) string {
 	}
 	hash := md5.Sum([]byte(s))
 	return hex.EncodeToString(hash[:])
-}
-
-// newConnectionKey creates a connectionKey from connection parameters
-func newConnectionKey(config SSHConnectionConfig, useProviderAsBastion bool, bastion *SSHConnectionConfig, fromClient *ssh.Client) connectionKey {
-	var parts []string
-
-	// Add main connection details
-	hostVal := "<nil>"
-	if config.Host != nil {
-		hostVal = *config.Host
-	}
-	parts = append(parts, fmt.Sprintf("host=%s", hostVal))
-
-	userVal := "<nil>"
-	if config.User != nil {
-		userVal = *config.User
-	}
-	parts = append(parts, fmt.Sprintf("user=%s", userVal))
-
-	portVal := "<nil>"
-	if config.Port != nil {
-		portVal = strconv.FormatInt(*config.Port, 10)
-	}
-	parts = append(parts, fmt.Sprintf("port=%s", portVal))
-
-	// Hash sensitive values
-	pwdVal := "<nil>"
-	if config.Password != nil {
-		pwdVal = hashSensitive(*config.Password)
-	}
-	parts = append(parts, fmt.Sprintf("pwd=%s", pwdVal))
-
-	keyVal := "<nil>"
-	if config.PrivateKey != nil {
-		keyVal = hashSensitive(*config.PrivateKey)
-	}
-	parts = append(parts, fmt.Sprintf("key=%s", keyVal))
-
-	// Add bastion flag
-	parts = append(parts, fmt.Sprintf("useProviderBastion=%v", useProviderAsBastion))
-
-	// Add bastion details if present
-	if bastion != nil {
-		hostVal := "<nil>"
-		if bastion.Host != nil {
-			hostVal = *bastion.Host
-		}
-		parts = append(parts, fmt.Sprintf("bastion_host=%s", hostVal))
-
-		userVal := "<nil>"
-		if bastion.User != nil {
-			userVal = *bastion.User
-		}
-		parts = append(parts, fmt.Sprintf("bastion_user=%s", userVal))
-
-		portVal := "<nil>"
-		if bastion.Port != nil {
-			portVal = strconv.FormatInt(*bastion.Port, 10)
-		}
-		parts = append(parts, fmt.Sprintf("bastion_port=%s", portVal))
-
-		// Hash sensitive bastion values
-		pwdVal := "<nil>"
-		if bastion.Password != nil {
-			pwdVal = hashSensitive(*bastion.Password)
-		}
-		parts = append(parts, fmt.Sprintf("bastion_pwd=%s", pwdVal))
-
-		keyVal := "<nil>"
-		if bastion.PrivateKey != nil {
-			keyVal = hashSensitive(*bastion.PrivateKey)
-		}
-		parts = append(parts, fmt.Sprintf("bastion_key=%s", keyVal))
-	} else {
-		parts = append(parts, "bastion=<nil>")
-	}
-
-	// Add fromClient address if present
-	if fromClient != nil {
-		parts = append(parts, fmt.Sprintf("from=%s", fromClient.RemoteAddr().String()))
-	} else {
-		parts = append(parts, "from=<nil>")
-	}
-
-	return connectionKey(strings.Join(parts, "|"))
 }
 
 // SSHManager handles SSH connections for the provider

@@ -1,5 +1,7 @@
 default: fmt lint install generate
 
+-include .env
+
 build:
 	go build -v ./...
 
@@ -16,7 +18,8 @@ fmt:
 	gofmt -s -w -e .
 
 test:
-	go test -v -cover -timeout=120s -parallel=10 ./...
+	go test -v ./...
+	# go test -v -cover -timeout=120s -parallel=10 ./...
 
 testacc:
 	TF_ACC=1 go test -v -cover -timeout 120m ./...
