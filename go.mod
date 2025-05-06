@@ -1,6 +1,7 @@
 module github.com/patrikkj/terraform-provider-tf
 
 go 1.22.7
+toolchain go1.24.1
 
 require (
 	github.com/hashicorp/terraform-plugin-framework v1.13.0
@@ -53,9 +54,9 @@ require (
 	github.com/zclconf/go-cty v1.15.0 // indirect
 	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/net v0.28.0 // indirect
-	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/sync v0.14.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect
@@ -66,6 +67,5 @@ require (
 require (
 	github.com/joho/godotenv v1.5.1
 	github.com/pkg/sftp v1.13.9
-	github.com/sanity-io/litter v1.5.8
-	golang.org/x/crypto v0.31.0
+	golang.org/x/crypto v0.38.0
 )
