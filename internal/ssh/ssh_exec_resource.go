@@ -94,7 +94,6 @@ func (r *SSHExecResource) Configure(_ context.Context, req resource.ConfigureReq
 
 func (r *SSHExecResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data SSHExecResourceModel
-
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -141,7 +140,6 @@ func (r *SSHExecResource) Create(ctx context.Context, req resource.CreateRequest
 
 func (r *SSHExecResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data SSHExecResourceModel
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -152,16 +150,8 @@ func (r *SSHExecResource) Read(ctx context.Context, req resource.ReadRequest, re
 }
 
 func (r *SSHExecResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data SSHExecResourceModel
-
-	// Get the current state
-	var state SSHExecResourceModel
+	var data, state SSHExecResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Get the planned changes
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -200,7 +190,6 @@ func (r *SSHExecResource) Update(ctx context.Context, req resource.UpdateRequest
 
 func (r *SSHExecResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data SSHExecResourceModel
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
