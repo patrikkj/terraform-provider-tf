@@ -32,6 +32,8 @@ type ResourceMeta struct {
 type Subprovider[C any] interface {
 	Metadata() SubproviderMeta
 	Configure(ctx context.Context, config C, resp *provider.ConfigureResponse)
+	DataSources() []func() datasource.DataSource
+	Resources() []func() resource.Resource
 }
 
 type DataSource[T any, C any, S interface{ Subprovider[C] }] interface {

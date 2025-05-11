@@ -9,20 +9,19 @@ import (
 	"go.opencensus.io/resource"
 )
 
-type Provider struct {
-	subprovider Subprovider
+type Provider[C any] struct {
+	subprovider Subprovider[C]
 }
 
-var _ provider.Provider = &Provider{}
+var _ provider.Provider = &Provider[any]{}
 
 type ProviderState map[string]interface{}
 
-func (p *Provider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
+func (p *Provider[C]) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "tf"
-	resp.Version = p.version
 }
 
-func (p *Provider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *Provider[C]) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	// Build schema from subproviders
 	attributes := map[string]schema.Attribute{}
 	blocks := map[string]schema.Block{}
@@ -44,7 +43,7 @@ func (p *Provider) Schema(_ context.Context, _ provider.SchemaRequest, resp *pro
 	}
 }
 
-func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (p *Provider[C]) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	// Initialize the provider state as a map
 	state := make(ProviderState)
 	resp.DataSourceData = state
@@ -56,7 +55,7 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	}
 }
 
-func (p *Provider) DataSources(ctx context.Context) []func() datasource.DataSource {
+func (p *Provider[C]) DataSources(ctx context.Context) []func() datasource.DataSource {
 	datasources := []func() datasource.DataSource{}
 	for _, prov := range registry {
 		datasources = append(datasources, prov.DataSources()...)
@@ -64,7 +63,7 @@ func (p *Provider) DataSources(ctx context.Context) []func() datasource.DataSour
 	return datasources
 }
 
-func (p *Provider) Resources(ctx context.Context) []func() resource.Resource {
+func (p *Provider[C]) Resources(ctx context.Context) []func() resource.Resource {
 	resources := []func() resource.Resource{}
 	for _, prov := range registry {
 		resources = append(resources, prov.Resources()...)
@@ -74,7 +73,7 @@ func (p *Provider) Resources(ctx context.Context) []func() resource.Resource {
 
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
-		return &Provider{
+		return &Provider[any]{
 			version: version,
 		}
 	}
