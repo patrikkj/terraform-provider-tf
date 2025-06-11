@@ -93,28 +93,28 @@ func (r *SSHExecResource) Configure(_ context.Context, req resource.ConfigureReq
 }
 
 func (r *SSHExecResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data SSHExecResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	var plan SSHExecResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Set default values for computed fields
-	if data.Output.IsNull() {
-		data.Output = types.StringValue("")
+	if plan.Output.IsNull() {
+		plan.Output = types.StringValue("")
 	}
-	if data.ExitCode.IsNull() {
-		data.ExitCode = types.Int64Value(0)
+	if plan.ExitCode.IsNull() {
+		plan.ExitCode = types.Int64Value(0)
 	}
 
 	// Generate a unique, stable ID before executing the command
-	data.Id = types.StringValue(utils.GenerateID(data.Command.ValueString(), time.Now()))
+	plan.Id = types.StringValue(utils.GenerateID(plan.Command.ValueString(), time.Now()))
 
 	// Get SSH client
 	client, err := r.manager.GetClient(
-		*data.SSHConnectionModel.toConfig(),
-		data.UseProviderAsBastion.ValueBool(),
-		data.Bastion.toConfig(),
+		*plan.SSHConnectionModel.toConfig(),
+		plan.UseProviderAsBastion.ValueBool(),
+		plan.Bastion.toConfig(),
 		nil,
 	)
 	if err != nil {
@@ -125,17 +125,17 @@ func (r *SSHExecResource) Create(ctx context.Context, req resource.CreateRequest
 	// Execute the command
 	output, exitCode, err := executeCommand(
 		client,
-		data.Command.ValueString(),
-		data.FailIfNonzero.ValueBool(),
+		plan.Command.ValueString(),
+		plan.FailIfNonzero.ValueBool(),
 	)
 	if err != nil {
 		resp.Diagnostics.AddError("Command execution failed", err.Error())
 		return
 	}
-	data.Output = types.StringValue(output)
-	data.ExitCode = types.Int64Value(exitCode)
+	plan.Output = types.StringValue(output)
+	plan.ExitCode = types.Int64Value(exitCode)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *SSHExecResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -150,21 +150,21 @@ func (r *SSHExecResource) Read(ctx context.Context, req resource.ReadRequest, re
 }
 
 func (r *SSHExecResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data, state SSHExecResourceModel
+	var plan, state SSHExecResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Preserve the original ID from state
-	data.Id = state.Id
+	plan.Id = state.Id
 
 	// Get SSH client
 	client, err := r.manager.GetClient(
-		*data.SSHConnectionModel.toConfig(),
-		data.UseProviderAsBastion.ValueBool(),
-		data.Bastion.toConfig(),
+		*plan.SSHConnectionModel.toConfig(),
+		plan.UseProviderAsBastion.ValueBool(),
+		plan.Bastion.toConfig(),
 		nil,
 	)
 	if err != nil {
@@ -175,17 +175,17 @@ func (r *SSHExecResource) Update(ctx context.Context, req resource.UpdateRequest
 	// Execute the command
 	output, exitCode, err := executeCommand(
 		client,
-		data.Command.ValueString(),
-		data.FailIfNonzero.ValueBool(),
+		plan.Command.ValueString(),
+		plan.FailIfNonzero.ValueBool(),
 	)
 	if err != nil {
 		resp.Diagnostics.AddError("Command execution failed", err.Error())
 		return
 	}
-	data.Output = types.StringValue(output)
-	data.ExitCode = types.Int64Value(exitCode)
+	plan.Output = types.StringValue(output)
+	plan.ExitCode = types.Int64Value(exitCode)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *SSHExecResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
