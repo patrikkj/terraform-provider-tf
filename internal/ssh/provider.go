@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -19,9 +20,6 @@ type (
 	SSHProviderModel struct {
 		SSHConnectionModel
 		Bastion *SSHConnectionModel `tfsdk:"bastion"`
-	}
-	FullSSHProviderModel struct {
-		Ssh SSHProviderModel `tfsdk:"ssh"`
 	}
 )
 
@@ -53,13 +51,12 @@ func (p *SSHProvider) Schema() schema.Schema {
 }
 
 func (p *SSHProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var fullConfig FullSSHProviderModel
+	var config SSHProviderModel
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &fullConfig)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("ssh"), &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	config := fullConfig.Ssh
 
 	// Set default port if not specified
 	if config.Port.IsNull() {
