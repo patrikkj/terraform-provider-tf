@@ -13,10 +13,15 @@ import (
 )
 
 type (
-	SSHProvider      struct{}
+	// Implementation of provider.Subprovider
+	SSHProvider struct{}
+
+	// Provider state
 	SSHProviderState struct {
 		manager *SSHManager
 	}
+
+	// Model for provider configuration parsing
 	SSHProviderModel struct {
 		SSHConnectionModel
 		Bastion *SSHConnectionModel `tfsdk:"bastion"`
